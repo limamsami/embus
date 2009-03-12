@@ -27,15 +27,13 @@ enum {
 typedef struct {
 	uint32_t magic;
 
-	uint32_t msg_type;
-	uint32_t msg_attr;
+	uint8_t msg_type;
+	uint8_t msg_attr;
 	uint32_t msg_len;
 
-	embus_name_t from;
 	embus_name_t to;
-	uint32_t to_mod_type;
-}embus_msg_head_t;
-
+	uint8_t to_mod_type;
+}__attribute((packed)) embus_msg_head_t;
 
 typedef struct {
 	embus_msg_head_t head;
@@ -44,6 +42,6 @@ typedef struct {
 
 #define EMBUS_MSG_LEN(x) (sizeof(embus_msg_t) + x -1)
 
-int embus_setup_local_peer_msg(embus_msg_t *m, embus_name_t *from, embus_name_t *to, uint32_t len);
+int embus_setup_local_peer_msg(embus_msg_t *m, uint32_t len);
 
 #endif

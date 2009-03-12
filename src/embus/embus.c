@@ -53,7 +53,6 @@ static int embus_do_send(embus_ctx_t *ec, embus_conn_t *conn, embus_msg_t *m)
 	int ret;
 
 	m->head.magic = EMBUS_MSG_MAGIC;
-	memcpy(&m->head.from, &ec->name, sizeof(embus_name_t));
 
 	switch (m->head.msg_type) {
 		case EMBUS_MSG_TYPE_PEER:

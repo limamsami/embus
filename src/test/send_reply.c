@@ -15,7 +15,7 @@
 int main(void)
 {
 	embus_ctx_t *ec;
-	embus_name_t n, from, to;
+	embus_name_t n;
 	embus_msg_t *s, *r;
 
 	char *sbuf = malloc(EMBUS_MSG_LEN(BUF_SIZE));
@@ -26,7 +26,6 @@ int main(void)
 	if (!sbuf || !rbuf) 
 		return -1;
 
-
 	ec = embus_construct(embus_make_name(&n, MY_MOD_NAME));
 	if (!ec) {
 		return -1;	
@@ -36,7 +35,8 @@ int main(void)
 	
 	s = (embus_msg_t *)sbuf;
 
-	embus_setup_local_peer_msg(s, embus_make_name(&from, MY_MOD_NAME), embus_make_name(&to, HIS_MOD_NAME), strlen(SMSG) + 1);
+	embus_make_name(&s->head.to, HIS_MOD_NAME);
+	embus_setup_local_peer_msg(s, strlen(SMSG) + 1);
 	strcpy(s->data, SMSG);
 	
 	r = (embus_msg_t *)rbuf;
@@ -54,7 +54,6 @@ int main(void)
 		fprintf(stderr, "TYPE: 0x%x.\n", r->head.msg_type);
 		fprintf(stderr, "ATTR: 0x%x.\n", r->head.msg_attr);
 		fprintf(stderr, "LEN: %d.\n", r->head.msg_len);
-		fprintf(stderr, "FROM: %s.\n", r->head.from.name);
 		fprintf(stderr, "TO: %s.\n", r->head.to.name);
 		fprintf(stderr, "TO_MOD_TYPE: 0x%x.\n", r->head.to_mod_type);
 		fprintf(stderr, "CONTENT: %s.\n", r->data);
