@@ -25,7 +25,6 @@ int main(void)
 
 	int ret;
 
-	
 	ec = embus_construct(embus_make_name(&n, MY_MOD_NAME));
 	if (!ec) {
 		return -1;	
@@ -51,15 +50,15 @@ int main(void)
 		fprintf(stderr, "TYPE: 0x%x.\n", s->head.msg_type);
 		fprintf(stderr, "ATTR: 0x%x.\n", s->head.msg_attr);
 		fprintf(stderr, "LEN: %d.\n", s->head.msg_len);
-		fprintf(stderr, "FROM: %s.\n", s->head.from.name);
 		fprintf(stderr, "TO: %s.\n", s->head.to.name);
 		fprintf(stderr, "TO_MOD_TYPE: 0x%x.\n", s->head.to_mod_type);
 		fprintf(stderr, "CONTENT: %s.\n", s->data);
 
 		if (s->head.msg_attr & EMBUS_MSG_ATTR_NEED_REPLY) {
 			fprintf(stderr, "====> Reply Message.\n");
-
-			embus_setup_local_peer_msg(r, &s->head.to, &s->head.from, strlen(REPLY_MSG) + 1);
+			
+			memcpy(&r->head.to, &conn.name, sizeof(embus_name_t));
+			embus_setup_local_peer_msg(r, strlen(REPLY_MSG) + 1);
 
 			ret = embus_reply(ec, &conn, r);
 			if (ret == -1) {

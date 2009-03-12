@@ -46,7 +46,6 @@ int main(void)
 		fprintf(stderr, "TYPE: 0x%x.\n", m->head.msg_type);
 		fprintf(stderr, "ATTR: 0x%x.\n", m->head.msg_attr);
 		fprintf(stderr, "LEN: %d.\n", m->head.msg_len);
-		fprintf(stderr, "FROM: %s.\n", m->head.from.name);
 		fprintf(stderr, "TO: %s.\n", m->head.to.name);
 		fprintf(stderr, "TO_MOD_TYPE: 0x%x.\n", m->head.to_mod_type);
 		fprintf(stderr, "CONTENT: %s.\n", m->data);

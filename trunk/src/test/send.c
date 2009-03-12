@@ -18,7 +18,7 @@
 int main(void)
 {
 	embus_ctx_t *ec;
-	embus_name_t n, from, to;
+	embus_name_t n;
 	embus_msg_t *m;
 	
 	struct timeval before, after, v;
@@ -42,10 +42,9 @@ int main(void)
 	
 	fprintf(stderr, "Message Size: %d Count: %d.\n", len + sizeof(embus_msg_t) - 1, TIMES);
 
-	embus_make_name(&from, MY_MOD_NAME);
-	embus_make_name(&to, HIS_MOD_NAME);
+	embus_make_name(&m->head.to, HIS_MOD_NAME);
 	
-	embus_setup_local_peer_msg(m, &from, &to, len);
+	embus_setup_local_peer_msg(m, len);
 	strcpy(m->data, MSG);
 	
 	gettimeofday(&before, NULL);

@@ -21,7 +21,7 @@ struct __embus_ctx;
 typedef struct __embus_ctx embus_ctx_t;
 
 typedef enum {
-	EMBUS_CTX_TYPE_NONE = -1,
+	EMBUS_CTX_TYPE_NONE = 0,
 	EMBUS_CTX_TYPE_LOCAL,
 	EMBUS_CTX_TYPE_TCP,
 }embus_ctx_type_t;
