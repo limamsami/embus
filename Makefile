@@ -1,4 +1,4 @@
-ARCH	:=	x86
+ARCH	:=	arm
 DEBUG	:=	1
 
 export ARCH DEBUG

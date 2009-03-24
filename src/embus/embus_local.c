@@ -69,7 +69,7 @@ static int embus_open_local_server(embus_local_ctx_t *c)
 	if (ret) 
 		goto err;
 	
-	set_nonblock(c->sd);
+	embus_set_nonblock(c->sd);
 
 	sa.sa_flags = 0;
 	sa.sa_handler = SIG_IGN;
@@ -118,7 +118,7 @@ re_connect:
 		return -1;
 	}
 
-	set_nonblock(sd);
+	embus_set_nonblock(sd);
 
 	conn->sd = sd;
 	conn->embus_ctx = ec;
@@ -127,20 +127,18 @@ re_connect:
 	return 0;
 }
 
-static int embus_local_send(embus_conn_t *conn, void *msg, int timeout)
+static int embus_local_send(embus_conn_t *conn, embus_msg_t *m, int timeout)
 {
-	embus_msg_t *m = (embus_msg_t *)msg;
 	embus_ctx_io_t *io = conn->embus_ctx->io;
 
 	if (!timeout)
 		timeout = io->io_timeout;
 
-	return send_with_timeout(conn->sd, m, sizeof(embus_msg_head_t) + m->head.msg_len, timeout);
+	return embus_send_with_timeout(conn->sd, m, sizeof(embus_msg_head_t) + m->head.msg_len, timeout);
 }
 
-static int embus_local_recv(embus_conn_t *conn, void *msg, int timeout)
+static int embus_local_recv(embus_conn_t *conn, embus_msg_t *m, int timeout)
 {
-	embus_msg_t *m = (embus_msg_t *)msg;
 	embus_ctx_io_t *io = conn->embus_ctx->io;
 
 	int ret;
@@ -148,16 +146,24 @@ static int embus_local_recv(embus_conn_t *conn, void *msg, int timeout)
 	if (!timeout)
 		timeout = io->io_timeout;
 	
-	ret = recv_with_timeout(conn->sd, m, sizeof(embus_msg_head_t), timeout);
-	if (ret == -1)
+	ret = embus_recv_with_timeout(conn->sd, m, sizeof(embus_msg_head_t), timeout);
+	if (ret == -1) {
+		DBG("Error on embus_recv_with_timeout when get message head.");
 		return -1;
+	}
 
-	if (m->head.magic != EMBUS_MSG_MAGIC) 
+	if (m->head.magic != EMBUS_MSG_MAGIC) {
+		DBG("Invalid EMBUS Magic number.");
+		embus_debug_dump_msg_head_info(&m->head);
 		return -1;
+	}
 
-	ret = recv_with_timeout(conn->sd, m->data, m->head.msg_len, timeout);
-	if (ret == -1)
+	ret = embus_recv_with_timeout(conn->sd, m->data, m->head.msg_len, timeout);
+	if (ret == -1) {
+		DBG("Error on embus_recv_with_timeout when get message body.");
+		embus_debug_dump_msg_head_info(&m->head);
 		return -1;
+	}
 
 	return 0;
 }
@@ -191,7 +197,7 @@ static int embus_local_wait(embus_ctx_t *ec, embus_conn_t *conn, int timeout)
 		}
 
 		if (!ret) {
-			DBG("0 connection.");
+			DBG("Wait connection timeout.");
 			return 0;
 		}
 
@@ -240,7 +246,7 @@ int embus_local_ctx_construct(embus_ctx_t *ec)
 
 	int ret;
 
-	c = (embus_local_ctx_t *)zalloc(sizeof(embus_local_ctx_t));
+	c = (embus_local_ctx_t *)embus_zalloc(sizeof(embus_local_ctx_t));
 	if (!c) 
 		return -1;
 

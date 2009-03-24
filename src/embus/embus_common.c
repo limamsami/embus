@@ -15,6 +15,7 @@
 
 #include "embus_def.h"
 #include "embus_common.h"
+#include "embus_debug.h"
 
 embus_name_t *embus_make_name(embus_name_t *n, char *name)
 {
@@ -24,7 +25,7 @@ embus_name_t *embus_make_name(embus_name_t *n, char *name)
 	return n;
 }
 
-void *zalloc(size_t size)
+void *embus_zalloc(size_t size)
 {
 	void *p;
 
@@ -36,7 +37,7 @@ void *zalloc(size_t size)
 	return p;
 }
 
-int set_nonblock(int fd)
+int embus_set_nonblock(int fd)
 {
 	int tmp;
 	
@@ -46,7 +47,7 @@ int set_nonblock(int fd)
 	return fcntl(fd, F_SETFL, tmp);
 }
 
-int send_with_timeout(int sd, void *buf, size_t len, int timeout)
+int embus_send_with_timeout(int sd, void *buf, size_t len, int timeout)
 {
 	struct pollfd pollfd;
 
@@ -54,19 +55,22 @@ int send_with_timeout(int sd, void *buf, size_t len, int timeout)
 	int ret;
 
 	pollfd.fd = sd;
-	pollfd.events = POLLOUT;
+	pollfd.events = POLLOUT | POLLIN | POLLHUP;
 
 	while (io != len) {
 		ret = poll(&pollfd, 1, timeout);
 		if (ret == -1 && errno == EINTR)
 			continue;
 
-		if (ret <= 0)
+		if (ret <= 0) 
+			return -1;
+		
+		if (pollfd.revents & POLLHUP)
 			return -1;
 
-		if (pollfd.revents & POLLOUT) {
+		if ((pollfd.revents & POLLOUT) || (pollfd.revents & POLLIN)) {
 			ret = write(sd, buf + io, len - io);
-			if (ret == -1 && errno == EINTR)
+			if ((ret == -1 && errno == EINTR) || (ret == -1 && errno == EAGAIN))
 				continue;
 
 			if (ret <= 0)
@@ -76,10 +80,10 @@ int send_with_timeout(int sd, void *buf, size_t len, int timeout)
 		}
 	}
 
-	return 0;
+	return io;
 }
 
-int recv_with_timeout(int sd, void *buf, size_t len, int timeout)
+int embus_recv_with_timeout(int sd, void *buf, size_t len, int timeout)
 {
 	struct pollfd pollfd;
 
@@ -94,20 +98,27 @@ int recv_with_timeout(int sd, void *buf, size_t len, int timeout)
 		if (ret == -1 && errno == EINTR)
 			continue;
 
-		if (ret <= 0)
+		if (ret <= 0) {
+			DBG("Error on poll. errno: %d.", errno);
 			return -1;
+		}
 
 		if (pollfd.revents & POLLIN) {
 			ret = read(sd, buf + io, len - io);
+			if (ret == 0)
+				return io;
+
 			if (ret == -1 && errno == EINTR)
 				continue;
 
-			if (ret <= 0)
+			if (ret < 0) {
+				DBG("Error on read. ret: %d, errno: %d.", ret, errno);
 				return -1;
-			
+			}
+
 			io += ret;
 		}
 	}
 
-	return 0;
+	return io;
 }
