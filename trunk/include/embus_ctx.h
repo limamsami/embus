@@ -43,9 +43,9 @@ struct __embus_conn {
 struct __embus_ctx_io {
 	int io_timeout;
 	
-	int (*connect)(embus_ctx_t *, embus_conn_t *conn, embus_name_t *);
-	int (*send)(embus_conn_t *, void *msg, int);
-	int (*recv)(embus_conn_t *, void *msg, int);
+	int (*connect)(embus_ctx_t *, embus_conn_t *, embus_name_t *);
+	int (*send)(embus_conn_t *, embus_msg_t *, int);
+	int (*recv)(embus_conn_t *, embus_msg_t *, int);
 	int (*wait)(embus_ctx_t *, embus_conn_t *, int);
 	void (*disconnect)(embus_conn_t *);
 };

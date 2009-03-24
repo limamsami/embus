@@ -23,7 +23,7 @@ embus_ctx_t *embus_construct(embus_name_t *name)
 
 	int ret;
 
-	ec = (embus_ctx_t *)zalloc(sizeof(embus_ctx_t));
+	ec = (embus_ctx_t *)embus_zalloc(sizeof(embus_ctx_t));
 	if (!ec)
 		return NULL;
 	
@@ -166,17 +166,21 @@ int embus_send_with_reply(embus_ctx_t *ec, embus_msg_t *s, embus_msg_t *r, int t
 			switch (s->head.to_mod_type) {
 				case EMBUS_MOD_TYPE_LOCAL:
 					ret = io->connect(ec, &conn, &s->head.to);
-					if (ret == -1)
+					if (ret == -1) {
+						DBG("Failed to connect to target module %s.\n", s->head.to.name);
 						return ret;
+					}
 
 					ret = embus_do_send(ec, &conn, s);
 					if (ret == -1) {
+						DBG("Failed to do embus_do_send.\n");
 						io->disconnect(&conn);
 						return -1;
 					}
 
 					ret = io->recv(&conn, r, timeout);
 					if (ret == -1) {
+						DBG("Failed to receive data.\n");
 						io->disconnect(&conn);
 						return -1;
 					}
@@ -186,12 +190,14 @@ int embus_send_with_reply(embus_ctx_t *ec, embus_msg_t *s, embus_msg_t *r, int t
 					break;
 
 				default:
+					DBG("Unknown module type.");
 					return -1;
 			}
 
 			break;
 
 		default:
+			DBG("Unknown message type.");
 			return -1;
 	}
 
