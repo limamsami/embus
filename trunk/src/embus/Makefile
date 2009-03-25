@@ -3,6 +3,7 @@ obj-y += embus_common.o
 obj-y += embus_local.o
 obj-y += embus_msg.o
 obj-y += embus_debug.o
+obj-y += embus_notifier.o
 
 TARGET_LIB = libembus.so
 
